@@ -1,0 +1,81 @@
+/* Ionescu Andrei Ionut - 321CB */
+
+								Tema 3
+
+	Pentru toate comenzile urmatoare deschidem cate o noua conexiune TCP
+pentru ca altfel serverul ar fi dat timeout la conexiune si nu ar mai fi raspuns la
+apelurile noastre.
+
+	Biblioteca parsare JSON:
+	Pentru aceasta tema am ales sa folosesc biblioteca parson. Am ales aceasta
+biblioteca pentru ca este usor de folosit si a fost sugerata de catre echipa temei.
+Pentru a folosi biblioteca avem 2 tipuri de structuri de date de baza, JSON_Object
+si JSON_Value. Pentru a lucra cu un sir de caractere de tip JSON, avem nevoie
+de o valoare care sa reprezinte radacina sirului de caractere, iar apoi extragem
+sau adaugam un obiect la JSON. Acest JSON_Object are metode pentru a introduce
+string-uri sau numere intr-un JSON cu o anumita cheie. Spre exemplu, functia
+json_object_set_string (object, "Name", "John Smith") va adauga in JSON un camp
+Name care va avea valoarea John Smith. Pentru a lucra cu un array, avem JSON_Array
+din care trebuie sa extragem rand pe rand obiectele din interiorul acestuia, iar
+apoi sa le prelucram cum dorim.
+
+	Comanda register:
+	Pentru aceasta comanda am folosit o functie auxiliara care ii ofera utilizatorului
+un prompt in care sa isi introduca credentialele. Daca exista deja cont cu acelasi
+nume, atunci server-ul ne va transmite automat aceasta eroare, iar in acest caz,
+pur si simplu extragem eroarea data de server, care este primita ca payload, si
+o afisam pentru a informa utilizatorul.
+
+	Comanda login:
+	Pentru aceasta comanda, se fac exact aceiasi pasi ca la register, doar ca in plus,
+serverul mai adauga header-ul de Set-Cookie din care extragem cookie-ul pentru
+logare de care vom avea nevoie mai tarziu. Daca utilizatorul incearca sa faca login
+cand era deja logat, atunci il anuntam.
+
+	Comanda enter_library:
+	Functia va primi cookie-ul de sesiune. Daca nu exista, inseamna implicit ca
+nu s-a facut login si il anuntam pe utilizator de acest lucru. Daca avem cookie-ul,
+atunci vom trimite pur si simplu un request pentru a primi si tokenul JWT pe care
+il primim ca payload. Il extragem din format JSON, si intoarcem tokenul.
+
+	Comanda get_books:
+	Functia primeste cookie-ul de sesiune si tokenul, iar daca vreunul din ele lipseste,
+atunci serverul ne va trimite un mesaj de eroare pe care il afisam mai departe
+utilizatorului. Daca am primit totul corect, atunci trimitem cererea la server si primim
+ca raspuns lista cu carti. Daca lista este goala, atentionam utilizatorul de acest lucru.
+In caz contrar, folosim biblioteca de parsare si afisam informatiile din fiecare element
+din array.
+
+	Comanda get_book:
+	Functia primeste ca parametri cookie-ul de sesiune si tokenul de acces la biblioteca. 
+Daca vreunul lipseste, atunci anuntam utilizatorul de eroare. Daca le avem pe ambele,
+atunci ii oferim un prompt utilizatorului in care sa introduca id-ul cartii pe care vrea
+sa o afisam. Daca nu exista, atunci server-ul ne va atentiona acest lucru, asa ca pur
+si simplu ii afisam utilizatorului eroarea aceasta. Altfel, folosind biblioteca de parsare
+de JSON, afisam informatiile despre carte.
+
+	Comanda add_book:
+	Daca nu avem tokenul sau cookie-ul de sesiune, atunci ii afisam un mesaj de eroare
+utilizatorului. Daca le avem, atunci ii oferim clientului un prompt in care sa completeze
+datele cartii pe care vrea sa o introduca. Dupa ce verificam daca datele sunt corecte,
+atunci pur si simplu trimitem la server cererea noastra, dupa ce am adaugat ca payload
+informatiile primite de la utilizator. Informatiile sunt trimise sub format JSON,
+transfomarea sa fiind facuta de biblioteca de JSON folosita.
+
+	Comanda delete_book:
+	Daca nu avem cookie-ul de sesiune si tokenul JWT, atunci afisam mesaj de eroare. Altfel,
+ii oferim utilizatorului un prompt in care sa scrie id-ul cartii pe care o doreste. Daca clientul
+nu a introdus un numar, afisam eroare. Daca totul este corect, atunci trimitem request-ul
+la server. Daca nu exista id-ul, atunci server-ul ne va intoarce automat un raspuns cu
+payload care ne indica eroarea, asa ca pur si simplu afisam eroarea primita de la server.
+
+	Comanda logout:
+	Daca utilizatorul nu este logat, atunci cand trimitem cererea serverul ne va da o eroare,
+pe care o afisam si utilizatorului. Daca serverul ne da codul 200 sa ne indice ca s-a facut
+delogarea cu succes, atunci pur si simplu stergem memoria alocata pentru cookie-ul de
+sesiune si pentru tokenul JWT. Astfel, clientul nu va mai avea acces la biblioteca dupa
+logout si va avea nevoie sa dea din nou login.
+
+	Comanda exit:
+	Pentru exit, pur si simplu stergem memoria pentru cookie-ul de sesiune si pentru token,
+daca exista. Iar apoi, iesim din bucla infinita.
